@@ -151,7 +151,7 @@ function SilentFOV()
   Circle2.Radius =  getgenv().Obs.FOV.Silent.Size * 3
   Circle2.Position = Vector2.new(Mouse.X, Mouse.Y + GetGuiInset(GuiService).Y)
   Circle2.Filled = getgenv().Obs.FOV.Silent.Filled
-  Circle2.Transparency = 1
+  Circle2.Transparency = 0.1
   Circle2.Thickness = 1
   Circle2.NumSides = 100
   Circle2.Color = Color3.fromRGB(0, 0, 0)
@@ -523,4 +523,33 @@ while getgenv().Obs.AutoPrediction.Enabled == true do
     wait(0.4)
 end
 
-loadstring(game:HttpGet("https://raw.githubusercontent.com/scripthubekitten/qtoolv3/main/qtoolv3", true))()
+-- credits to ray
+getgenv().keytoclick = "Q"
+tool = Instance.new("Tool")
+tool.RequiresHandle = false
+tool.Name = keytoclick
+tool.Activated:connect(function()
+    local vim = game:service("VirtualInputManager")
+vim:SendKeyEvent(true, keytoclick, false, game)
+end)
+tool.Parent = game.Players.LocalPlayer.Backpack
+wait(0.2)
+local AkaliNotif = loadstring(game:HttpGet("https://raw.githubusercontent.com/Kinlei/Dynissimo/main/Scripts/AkaliNotif.lua"))();
+local Notify = AkaliNotif.Notify;
+Notify({
+Description = "v1x";
+Title = "v1x";
+Duration = 10;
+})
+
+local player = game.Players.LocalPlayer
+
+local function connectCharacterAdded()
+    player.CharacterAdded:Connect(onCharacterAdded)
+end
+
+connectCharacterAdded()
+
+player.CharacterRemoving:Connect(function()
+    tool.Parent = game.Players.LocalPlayer.Backpack
+end)
