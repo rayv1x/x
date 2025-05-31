@@ -21,7 +21,7 @@ getgenv().Yeki = {
             ["CheatDetected"] = (true),
             ["FakeSpike"] = (false),
             ["Desync"] = (false), 
-            ["Esp"] = (true),
+            ["Esp"] = (false),
             ["Misc"] = (true)
         } -- // Sends Notification When you Enabled / Disabled Stuff
     },
@@ -384,7 +384,7 @@ getgenv().Yeki = {
     },
     ["Esp"] = {
         ["Enabled"] = (false), -- // Enable / Disable Esp
-        ["UseEspKeyBind"] = (false), -- // Enable / Disable EspKey
+        ["UseEspKeyBind"] = (true), -- // Enable / Disable EspKey
         ["EspKey"] = ("T"), -- // Key To Enable / Disable Esp
         ["HoldMode"] = (false), -- // Enables While Only Holding The Key
         
