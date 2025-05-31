@@ -11,7 +11,7 @@ getgenv().Yeki = {
         ["AutoLowGfx"] = (true), -- // AutoMatically Disables Textures In The Map
         ["MuteBoomBox"] = (true), -- // AutoMatically Disables BoomBoxes Music
         ["RemoveSeats"] = (true), -- // AutoMatically Removes Seats
-        ["GetInformation"] = (true), -- // Sends Current Execution And How Long It Took You To Load
+        ["GetInformation"] = (false), -- // Sends Current Execution And How Long It Took You To Load
         ["NotificationMode"] = {
             ["Enabled"] = (true),
             ["Silent"] = (true),
@@ -216,7 +216,7 @@ getgenv().Yeki = {
         ["Method"] = ("Camera"), -- // Wich Thing It Uses For AimAssist (Mouse, Camera)
 
         ["PredictMovement"] = (true), -- // Predicts Target Position And MoveMent
-        ["Prediction"] = (0.1), -- // How Much Power It Predicts The Target
+        ["Prediction"] = (0), -- // How Much Power It Predicts The Target
         ["Part"] = ("UpperTorso"), -- // The Part That Aim Assist Locks On
         ["ClosestPart"] = (false), -- // Automatically Gets The Closest Part Of The Target And Uses That Position
         ["RandomPart"] = (false), -- // Randomizes An Part Of The Target And Uses That Position. Will OverWrite ClosestPart
