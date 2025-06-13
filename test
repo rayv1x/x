@@ -8,7 +8,7 @@ getgenv().Yeki = {
         ["AutoGetUp"] = (true), -- // If You Are Laying Down Unable To Stand Up It Will AutoMatically Get You Up
         ["AntiError"] = (true), -- // Removes Errors In Console
         ["BypassData"] = (true), -- // Bypasses Many Methods Of Most Cheat Detections
-        ["AutoLowGfx"] = (true), -- // AutoMatically Disables Textures In The Map
+        ["AutoLowGfx"] = (false), -- // AutoMatically Disables Textures In The Map
         ["MuteBoomBox"] = (true), -- // AutoMatically Disables BoomBoxes Music
         ["RemoveSeats"] = (true), -- // AutoMatically Removes Seats
         ["GetInformation"] = (false), -- // Sends Current Execution And How Long It Took You To Load
@@ -70,7 +70,7 @@ getgenv().Yeki = {
         ["HitChance"] = (79), -- // The Chance You Will Hit The Target
         ["AirHitChance"] = (79), -- // The Chance You Will Hit The Target In The Air
         
-        ["Humanize"] = (false), -- // Makes So The Silent Doesnt Hit The Same Position (Randomizes The Position)
+        ["Humanize"] = (true), -- // Makes So The Silent Doesnt Hit The Same Position (Randomizes The Position)
         ["HumanizeValue"] = (5), -- // Makes So How Much Power It Changes
         
         ["TriggerBot"] = (false), -- // Shoots AutoMatically When You Have An Target Locked
@@ -123,13 +123,13 @@ getgenv().Yeki = {
             ["P10_20"] = (0.10087127181718181)
         },
         ["Fov"] = {
-            ["Visible"] = (false), -- // If The Circle Is Showing Or Not
+            ["Visible"] = (true), -- // If The Circle Is Showing Or Not
             ["Method"] = ("Screen"), -- // What Type Of Position The Fov Is Gonna Be (Mouse, Screen)
             ["Filled"] = (false), -- // If The Circle Is Filled
             ["Transparency"] = (0.1), -- // The Circle Transparency
             ["Color"] = (Color3.fromRGB(200, 200, 200)), -- // Circle Color
             ["Offset"] = (Vector2.new(0, 0)), -- // Circle Position + The Offset
-            ["StickyFov"] = (false), -- // Puts The Circle On Target Position
+            ["StickyFov"] = (true), -- // Puts The Circle On Target Position
             ["Radius"] = (11.8) -- // How Big The Circle Is
         },
         ["GunSettings"] = {
@@ -268,7 +268,7 @@ getgenv().Yeki = {
     },
     ["UniversalCheck"] = {
         ["InVisibleCheck"] = (true), -- // Checks If Target Is InVisible
-        ["ForceFieldCheck"] = (false), -- // Checks If Target Has ForceFeild. That Blue Bubble Thing When You Spawn
+        ["ForceFieldCheck"] = (true), -- // Checks If Target Has ForceFeild. That Blue Bubble Thing When You Spawn
         ["TargetDeathCheck"] = (true), -- // Disables When Target Is Dead
         ["PlayerDeathCheck"] = (true), -- // Disables When You Die
         ["ToolOut"] = (false), -- // AimAssist Only Enables When An Tool Is Out
@@ -276,7 +276,7 @@ getgenv().Yeki = {
         ["WallCheck"] = (true), -- // Checks If There Is Nothing Infront Of The Target
         ["WallCheck_V2"] = (false), -- // Checks If The Velocity Is Predicting Into An Wall
         ["FriendCheck"] = (false), -- // Checks If Target Is Your Friend
-        ["TeamCheck"] = (false), -- // Checks If Player Is In the Same Team
+        ["TeamCheck"] = (true), -- // Checks If Player Is In the Same Team
         
         ["CrewCheck"] = (false), -- // Checks If Target Is In Your Crew
         ["KoCheck"] = (true), -- // Checks If Target Is Grabbed Or Knocked
@@ -3522,7 +3522,7 @@ end
 local AkaliNotif = loadstring(game:HttpGet("https://raw.githubusercontent.com/Kinlei/Dynissimo/main/Scripts/AkaliNotif.lua"))();
 local Notify = AkaliNotif.Notify;
 Notify({
-    Description = "Aim Assist is active (Tool-Based)";
-    Title = "v1x";
+    Description = "Tool Activated";
+    Title = "Yeki";
     Duration = 5;
 })
