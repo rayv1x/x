@@ -1,8 +1,8 @@
 getgenv().Yeki = {
     ["Options"] = {
         ["Version"] = ("0.0.4.7"), -- // Do Not Touch. This Will Detect If You Are Using Old Table
-        ["Gui"] = (true), -- // Shows You An Gui That You Can Change Stuff Directly
-        ["GuiV2"] = (true), -- // Shows You An Gui V2 That You Can Change Stuff Directly
+        ["Gui"] = (false), -- // Shows You An Gui That You Can Change Stuff Directly
+        ["GuiV2"] = (false), -- // Shows You An Gui V2 That You Can Change Stuff Directly
         ["Intro"] = (true), -- // Shows You An Intro
         ["Internal"] = (false), -- // Shows An Console That You Can Change ChatCommands On
         ["AutoGetUp"] = (true), -- // If You Are Laying Down Unable To Stand Up It Will AutoMatically Get You Up
@@ -3487,7 +3487,7 @@ end
 -- Create a tool that directly activates Aim Assist when clicked or equipped
 getgenv().AimAssistTool = Instance.new("Tool")
 AimAssistTool.RequiresHandle = false
-AimAssistTool.Name = "AimAssistActivator"
+AimAssistTool.Name = "yeki"
 
 -- Function to force-enable Aim Assist
 local function ActivateAimAssist()
