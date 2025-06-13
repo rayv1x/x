@@ -466,7 +466,7 @@ if Yeki.Options.Intro then
     Image.Position = UDim2.new(0.405, 0, 0.405, 0)
     Image.Size = UDim2.new(0.17, 0, 0.27, 0)
     Image.ImageTransparency = 1
-    Image.Image = "rbxassetid://12714203201"
+    Image.Image = "rbxassetid://15619115587"
     
     local Create = Tween:Create(Blur, TweenInfo.new(1.5, Enum.EasingStyle.Cubic, Enum.EasingDirection.Out), {Size = 50})
     Create:Play()
