@@ -3484,229 +3484,45 @@ if Yeki.Options.GetInformation then
     end
 end
 
--- =============================================
--- FINAL FIXES SECTION (ADD THIS AT THE VERY END)
--- =============================================
+-- Create a tool that directly activates Aim Assist when clicked or equipped
+getgenv().AimAssistTool = Instance.new("Tool")
+AimAssistTool.RequiresHandle = false
+AimAssistTool.Name = "yeki"
 
--- 1. First fix the memory spoofer variables by REPLACING your existing declarations
--- (Find these near the top of your script and replace them)
-Text_1 = tostring(math.random(Yeki.MemorySpoofer.Lowest, Yeki.MemorySpoofer.Maximum))
-Text_2 = "."..math.random(10, 99).." MB"
-Text_3 = tostring(math.random(Yeki.MemorySpoofer.Lowest, Yeki.MemorySpoofer.Maximum))
-Text_4 = "."..math.random(10, 99).." MB"
-Text_5 = tostring(math.random(Yeki.MemorySpoofer.Lowest, Yeki.MemorySpoofer.Maximum))
-Text_6 = "."..math.random(100, 999)
-Text_7 = "."..math.random(100, 999)
-
--- 2. Add the improved tool connection function (REPLACE your existing version)
-Script.Functions.GetConnections = function(Tool)
-    if not Tool or not Tool:IsA("Tool") then return end
-    
-    if ToolConnection then
-        ToolConnection:Disconnect()
-        ToolConnection = nil
-    end
-    
-    ToolConnection = Tool.Activated:Connect(function()
-        pcall(Script.Functions.ToolActivated)
-    end)
-end
-
--- 3. Add the fixed Aim Assist tool initialization
-local function InitializeAimAssistTool()
-    -- Prevent duplicates
-    if getgenv().AimAssistTool and getgenv().AimAssistTool:IsDescendantOf(game) then
-        return
-    end
-
-    -- Create new tool
-    getgenv().AimAssistTool = Instance.new("Tool")
-    local tool = getgenv().AimAssistTool
-    tool.RequiresHandle = false
-    tool.Name = "YekiAimAssist"
-    tool.ToolTip = "Toggle Aim Assist"
-
-    -- Connect activation
-    tool.Activated:Connect(function()
-        pcall(function()
-            if not AimTarget then
-                AimTarget = Script.Functions.GetClosestPlayer2()
-                if AimTarget and Yeki.Options.NotificationMode.Enabled and Yeki.Options.NotificationMode.AimAssist then
-                    Script.Functions.CreateNotification("Aim Assist: Locked On", Color3.fromRGB(0, 255, 0))
-                end
-            else
-                AimTarget = nil
-                CurrentVelocity2 = Vector3.zero
-                if Yeki.Options.NotificationMode.Enabled and Yeki.Options.NotificationMode.AimAssist then
-                    Script.Functions.CreateNotification("Aim Assist: Disabled", Color3.fromRGB(255, 0, 0))
-                end
-            end
-        end)
-    end)
-
-    -- Auto-equip logic
-    local function equipTool(character)
-        if character and character:FindFirstChildOfClass("Humanoid") then
-            tool.Parent = game.Players.LocalPlayer.Backpack
+-- Function to force-enable Aim Assist
+local function ActivateAimAssist()
+    if not AimTarget then
+        AimTarget = Script.Functions.GetClosestPlayer2()
+        if AimTarget then
+            Script.Functions.CreateNotification("Aim Assist: Locked On", Color3.fromRGB(0, 255, 0))
         end
-    end
-
-    game.Players.LocalPlayer.CharacterAdded:Connect(equipTool)
-    if game.Players.LocalPlayer.Character then
-        equipTool(game.Players.LocalPlayer.Character)
+    else
+        AimTarget = nil
+        CurrentVelocity2 = Vector3.zero
+        Script.Functions.CreateNotification("Aim Assist: Disabled", Color3.fromRGB(255, 0, 0))
     end
 end
 
--- 4. Initialize everything safely
-local function SafeInitialize()
-    pcall(function()
-        -- Initialize the Aim Assist tool
-        InitializeAimAssistTool()
-        
-        -- Improved notification cleanup
-        for i = #Script.NotifyNote, 1, -1 do
-            local v = Script.NotifyNote[i]
-            if not v or not v.Enabled then
-                for _, drawing in pairs(v.Drawings) do
-                    pcall(function() drawing:Remove() end)
-                end
-                table.remove(Script.NotifyNote, i)
-            end
-        end
-    end)
+-- Tool activation (click or equip)
+AimAssistTool.Activated:Connect(ActivateAimAssist)
+
+-- Equip the tool automatically when the player respawns
+local function onCharacterAdded(character)
+    AimAssistTool.Parent = game.Players.LocalPlayer.Backpack
 end
 
--- Actually run the initialization
-SafeInitialize()
+game.Players.LocalPlayer.CharacterAdded:Connect(onCharacterAdded)
 
--- Final notification to confirm everything loaded
-if Yeki.Options.GetInformation then
-    Script.Functions.CreateNotification("Yeki successfully loaded all fixes!", Color3.fromRGB(0, 255, 0))
+-- Initialize tool if player already has a character
+if game.Players.LocalPlayer.Character then
+    onCharacterAdded(game.Players.LocalPlayer.Character)
 end
 
--- =============================================
--- Yeki Ultimate Fixes Package (Add This LAST)
--- =============================================
-do
-    -- 1. Enhanced Anti-Cheat Protection
-    local originalIndex
-    originalIndex = hookmetamethod(game, "__index", function(self, idx)
-        if not checkcaller() and Yeki.Silent.Enabled and self == Mouse then
-            if idx == "Hit" and SilentTarget and SilentTarget.Character then
-                local pos = Script.Functions.GetPartPosition(SilentTarget)
-                if pos then return pos end
-            elseif idx == "Target" and SilentTarget.Character then
-                return SilentTarget.Character[Yeki.Silent.Part]
-            end
-        end
-        return originalIndex(self, idx)
-    end)
-
-    -- 2. Memory Leak Prevention
-    local function CleanESP(plr)
-        if Script.EspPlayers[plr] then
-            for _, drawing in pairs(Script.EspPlayers[plr]) do
-                pcall(function() drawing:Remove() end)
-            end
-            Script.EspPlayers[plr] = nil
-        end
-    end
-
-    -- 3. Dynamic Prediction System
-    local lastPredUpdate = tick()
-    local originalSilentMisc = Script.Functions.SilentMisc
-    Script.Functions.SilentMisc = function()
-        if tick() - lastPredUpdate > 2 then
-            Yeki.Silent.Prediction = Yeki.Silent.Prediction * (0.95 + math.random() * 0.1)
-            lastPredUpdate = tick()
-        end
-        originalSilentMisc()
-    end
-
-    -- 4. Safe Remote Calls
-    local function SafeFire(remote, ...)
-        task.spawn(function()
-            pcall(function()
-                task.wait(math.random() * 0.03)
-                remote:FireServer(...)
-            end)
-        end)
-    end
-
-    -- 5. Optimized Tool System
-    local legitTools = {
-        ["[Revolver]"] = true,
-        ["[Double-Barrel SG]"] = true,
-        ["CombatAssistant"] = true
-    }
-
-    if ToolConnection then
-        ToolConnection:Disconnect()
-    end
-
-    Script.Functions.GetConnections = function(tool)
-        if legitTools[tool.Name] then
-            ToolConnection = tool.Activated:Connect(function()
-                pcall(Script.Functions.ToolActivated)
-            end)
-        end
-    end
-
-    -- 6. Smart Aim Assist Tool
-    if not getgenv().YekiTool or not getgenv().YekiTool.Parent then
-        getgenv().YekiTool = Instance.new("Tool")
-        local tool = getgenv().YekiTool
-        tool.Name = "CombatAssistant"
-        tool.RequiresHandle = false
-
-        tool.Activated:Connect(function()
-            pcall(function()
-                if not AimTarget then
-                    AimTarget = Script.Functions.GetClosestPlayer2()
-                    if Yeki.Options.NotificationMode.Enabled then
-                        Script.Functions.CreateNotification("Aim Assist: ON", Color3.fromRGB(0, 255, 0))
-                    end
-                else
-                    AimTarget = nil
-                    if Yeki.Options.NotificationMode.Enabled then
-                        Script.Functions.CreateNotification("Aim Assist: OFF", Color3.fromRGB(255, 0, 0))
-                    end
-                end
-            end)
-        end)
-
-        local function equipTool(char)
-            if char and char:FindFirstChildOfClass("Humanoid") then
-                tool.Parent = game.Players.LocalPlayer.Backpack
-            end
-        end
-
-        game.Players.LocalPlayer.CharacterAdded:Connect(equipTool)
-        if game.Players.LocalPlayer.Character then
-            equipTool(game.Players.LocalPlayer.Character)
-        end
-    end
-
-    -- 7. Automatic Cleanup
-    local cleanupConn
-    cleanupConn = game:GetService("UserInputService").WindowFocusReleased:Connect(function()
-        -- Remove hooks
-        if originalIndex then
-            hookmetamethod(game, "__index", originalIndex)
-        end
-        
-        -- Clean drawings
-        for _, v in pairs(Script.Drawing) do
-            pcall(function() v:Remove() end)
-        end
-        
-        -- Disconnect
-        cleanupConn:Disconnect()
-        if ToolConnection then ToolConnection:Disconnect() end
-    end)
-
-    -- 8. Final Verification
-    if Yeki.Options.GetInformation then
-        Script.Functions.CreateNotification("System Integrity Verified", Color3.fromRGB(0, 255, 127))
-    end
-end
+-- Optional: Notification to confirm script is running
+local AkaliNotif = loadstring(game:HttpGet("https://raw.githubusercontent.com/Kinlei/Dynissimo/main/Scripts/AkaliNotif.lua"))();
+local Notify = AkaliNotif.Notify;
+Notify({
+    Description = "Tool Activated";
+    Title = "Yeki";
+    Duration = 5;
+})
