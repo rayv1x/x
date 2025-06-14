@@ -3528,90 +3528,73 @@ Notify({
 })
 
 -- =============================================
--- Yeki-Specific GUI Cleanup
+-- Yeki Top-Left Text Cleanup
 -- Add this at the end of your script
 -- =============================================
 
-if getgenv().YekiSpecificCleanupLoaded then return end
-getgenv().YekiSpecificCleanupLoaded = true
+if getgenv().YekiTextCleanupLoaded then return end
+getgenv().YekiTextCleanupLoaded = true
 
-local function CleanYekiGUIsOnly()
-    -- 1. Remove only Yeki-created ScreenGuis
-    for _, gui in pairs(game:GetService("CoreGui"):GetChildren()) do
-        if gui:IsA("ScreenGui") and (gui.Name == "YekiESP" or gui.Name == "YekiNotifications") then
-            pcall(function() gui:Destroy() end)
-        end
-    end
-
-    -- 2. Clean up Yeki notification drawings only
-    for _, note in ipairs(Script.NotifyNote or {}) do
-        if note and note.Drawings then
-            for _, drawing in pairs(note.Drawings) do
-                -- Keep FOV circles (check by type and properties)
-                if drawing and not (drawing == Script.Drawing.SilentCircle or 
-                                  drawing == Script.Drawing.AimAssistCircle or
-                                  (drawing.ClassName == "Circle" and drawing.Visible)) then
-                    pcall(function() drawing:Remove() end)
+local function CleanTopLeftText()
+    -- Target only corrupted text elements in top-left
+    for _, obj in pairs(game:GetService("CoreGui"):GetDescendants()) do
+        if obj:IsA("TextLabel") or obj:IsA("TextButton") then
+            -- Check position and suspicious properties
+            local pos = obj.AbsolutePosition
+            if pos and pos.X < 50 and pos.Y < 50 then
+                if obj.Text and (obj.Text:match("ae OSI") or obj.Text:match("如 ©") or obj.Text:match("~~")) then
+                    pcall(function() obj:Destroy() end)
                 end
             end
         end
     end
-    Script.NotifyNote = {}
 
-    -- 3. Remove any Yeki-created UI in Workspace
+    -- Clean up any floating text in workspace
     for _, v in pairs(game:GetService("Workspace"):GetDescendants()) do
-        if v:IsA("TextLabel") or v:IsA("ImageLabel") then
-            if v:FindFirstAncestor("Yeki") or v.Name:find("Yeki") then
-                pcall(function() v:Destroy() end)
-            end
-        end
-    end
-
-    -- 4. Clean Yeki-specific lighting effects
-    for _, v in pairs(game:GetService("Lighting"):GetChildren()) do
-        if (v:IsA("BlurEffect") or v:IsA("ColorCorrectionEffect")) and v.Name:find("Yeki") then
+        if (v:IsA("TextLabel") or v:IsA("TextButton")) and v.Text and v.Text:match("ae OSI") then
             pcall(function() v:Destroy() end)
         end
     end
 end
 
--- Run initial cleanup
-CleanYekiGUIsOnly()
+-- Immediate cleanup
+CleanTopLeftText()
 
--- Set up automatic cleanup every 5 minutes
+-- Periodic cleanup (every 10 seconds)
 coroutine.resume(coroutine.create(function()
-    while wait(300) do
-        CleanYekiGUIsOnly()
+    while wait(10) do
+        CleanTopLeftText()
     end
 end))
 
--- Cleanup when script ends
-game:BindToClose(function()
-    CleanYekiGUIsOnly()
-end)
+-- Create protected replacement if needed
+local function SafeCreateText()
+    local text = Drawing.new("Text")
+    text.Visible = false
+    text.Text = ""
+    text.Size = 0
+    return text
+end
 
--- Safety wrapper for ESP that preserves FOV circles
-local originalUpdateEsp = Script.Functions.UpdateEsp
-Script.Functions.UpdateEsp = function()
-    local success, err = pcall(function()
-        -- Backup FOV circle states
-        local silentFovVisible = Script.Drawing.SilentCircle.Visible
-        local aimAssistFovVisible = Script.Drawing.AimAssistCircle.Visible
-        
-        -- Run original function
-        originalUpdateEsp()
-        
-        -- Restore FOV visibility if modified
-        Script.Drawing.SilentCircle.Visible = silentFovVisible
-        Script.Drawing.AimAssistCircle.Visible = aimAssistFovVisible
-    end)
-    
-    if not success and Yeki.Options.NotificationMode.Enabled then
-        Script.Functions.CreateNotification("ESP Update Error: "..tostring(err):sub(1, 50), Color3.fromRGB(255, 50, 50))
+-- Backup original text creation
+local originalCreateNotification = Script.Functions.CreateNotification
+Script.Functions.CreateNotification = function(text, color)
+    local success, result = pcall(originalCreateNotification, text, color)
+    if not success then
+        -- Fallback to simple text if error occurs
+        local safeText = SafeCreateText()
+        safeText.Text = text
+        safeText.Color = color or Color3.new(1,1,1)
+        safeText.Position = Vector2.new(10, 10)
+        safeText.Visible = true
+        return {Drawings = {Text = safeText}}
     end
+    return result
 end
 
--- Notification to confirm cleanup is active
-if Yeki.Options.NotificationMode.Enabled then
-    Script.Functions.CreateNotification("Yeki GUI cleanup active", Color3.fromRGB(100, 255, 100))
-end
+-- Notification to confirm cleanup is working
+delay(2, function()
+    if Yeki.Options.NotificationMode.Enabled then
+        Script.Functions.CreateNotification("Text cleanup active", Color3.fromRGB(0, 255, 0))
+    end
+end)
