@@ -3526,3 +3526,106 @@ Notify({
     Title = "Yeki";
     Duration = 5;
 })
+
+-- =============================================
+-- FULL CLEANUP SCRIPT (Add at the VERY END)
+-- =============================================
+
+-- 1. FIRST, CLEAR ALL EXISTING DRAWINGS AND GUI ELEMENTS
+for _, playerData in pairs(Script.EspPlayers or {}) do
+    for drawingName, drawingObj in pairs(playerData) do
+        if typeof(drawingObj) == "Instance" and drawingObj:IsA("Drawing") then
+            drawingObj:Remove() -- Remove ESP drawings (text, boxes, etc.)
+        end
+    end
+end
+
+-- Clear GUI elements (if any)
+if game:GetService("CoreGui"):FindFirstChild("YekiESP") then
+    game:GetService("CoreGui").YekiESP:Destroy()
+end
+
+-- 2. FIX THE ESP UPDATE FUNCTION (NO DUPLICATES)
+local function FixedUpdateESP()
+    for player, drawings in pairs(Script.EspPlayers) do
+        -- Skip if player is invalid or ESP is disabled
+        if not Yeki.Esp.Enabled or not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then
+            for _, drawing in pairs(drawings) do
+                if drawing then drawing.Visible = false end
+            end
+            continue
+        end
+
+        -- Calculate position once
+        local rootPart = player.Character.HumanoidRootPart
+        local pos, onScreen = Camera:WorldToViewportPoint(rootPart.Position)
+        
+        if onScreen then
+            -- Update NAME text
+            if drawings.Name then
+                drawings.Name.Visible = Yeki.Esp.Name.Enabled
+                drawings.Name.Text = player.Name
+                drawings.Name.Position = Vector2.new(pos.X, pos.Y - 30) -- Adjust Y offset
+            end
+
+            -- Update DISTANCE text
+            if drawings.Distance and Yeki.Esp.Distance.Enabled then
+                local dist = (rootPart.Position - Camera.CFrame.Position).Magnitude
+                drawings.Distance.Text = string.format("[%d studs]", math.floor(dist))
+                drawings.Distance.Position = Vector2.new(pos.X, pos.Y - 15)
+            end
+
+            -- Update HEALTH text
+            if drawings.HealthText and Yeki.Esp.HealthText.Enabled then
+                local health = player.Character.Humanoid.Health
+                drawings.HealthText.Text = string.format("HP: %d", math.floor(health))
+                drawings.HealthText.Position = Vector2.new(pos.X, pos.Y)
+            end
+
+            -- Update BOX (if enabled)
+            if drawings.Box and Yeki.Esp.Box.Enabled then
+                local size = Vector2.new(50, 80) -- Adjust box size
+                drawings.Box.Size = size
+                drawings.Box.Position = Vector2.new(pos.X - size.X / 2, pos.Y - size.Y / 2)
+                drawings.Box.Visible = true
+            end
+        else
+            -- Hide if off-screen
+            for _, drawing in pairs(drawings) do
+                if drawing then drawing.Visible = false end
+            end
+        end
+    end
+end
+
+-- Replace the old UpdateEsp
+Script.Functions.UpdateEsp = FixedUpdateESP
+
+-- 3. FIX GUI ISSUES (IF ANY)
+-- Example: Recreate a clean GUI container (optional)
+local function CreateCleanGUI()
+    local gui = Instance.new("ScreenGui")
+    gui.Name = "YekiESP"
+    gui.Parent = game:GetService("CoreGui")
+    gui.ResetOnSpawn = false
+    return gui
+end
+
+-- 4. CLEANUP WHEN PLAYERS LEAVE
+Players.PlayerRemoving:Connect(function(player)
+    if Script.EspPlayers[player] then
+        for _, drawing in pairs(Script.EspPlayers[player]) do
+            if drawing then drawing:Remove() end
+        end
+        Script.EspPlayers[player] = nil
+    end
+end)
+
+-- 5. PREVENT DUPLICATE EXECUTIONS
+if getgenv().YekiFullCleanupDone then return end
+getgenv().YekiFullCleanupDone = true
+
+-- 6. FORCE-RESET ESP TO APPLY FIXES
+Yeki.Esp.Enabled = false
+task.wait(0.1)
+Yeki.Esp.Enabled = true -- Toggle to refresh
