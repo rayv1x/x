@@ -3528,70 +3528,90 @@ Notify({
 })
 
 -- =============================================
--- Yeki GUI Cleanup (Minimal Version)
+-- Yeki-Specific GUI Cleanup
 -- Add this at the end of your script
 -- =============================================
 
-if getgenv().YekiGUICleanupLoaded then return end
-getgenv().YekiGUICleanupLoaded = true
+if getgenv().YekiSpecificCleanupLoaded then return end
+getgenv().YekiSpecificCleanupLoaded = true
 
-local function CleanGUI()
-    -- 1. Remove corrupted ScreenGuis
-    for _, v in pairs(game:GetService("CoreGui"):GetChildren()) do
-        if v:IsA("ScreenGui") and (v.Name == "ErrorPrompt" or v.Name == "RobloxGui" or v.Name:find("Yeki")) then
-            pcall(function() v:Destroy() end)
+local function CleanYekiGUIsOnly()
+    -- 1. Remove only Yeki-created ScreenGuis
+    for _, gui in pairs(game:GetService("CoreGui"):GetChildren()) do
+        if gui:IsA("ScreenGui") and (gui.Name == "YekiESP" or gui.Name == "YekiNotifications") then
+            pcall(function() gui:Destroy() end)
         end
     end
 
-    -- 2. Clean up notification drawings without affecting FOV circles
+    -- 2. Clean up Yeki notification drawings only
     for _, note in ipairs(Script.NotifyNote or {}) do
-        for _, drawing in pairs(note.Drawings or {}) do
-            if drawing and drawing ~= Script.Drawing.SilentCircle and drawing ~= Script.Drawing.AimAssistCircle then
-                pcall(function() drawing:Remove() end)
+        if note and note.Drawings then
+            for _, drawing in pairs(note.Drawings) do
+                -- Keep FOV circles (check by type and properties)
+                if drawing and not (drawing == Script.Drawing.SilentCircle or 
+                                  drawing == Script.Drawing.AimAssistCircle or
+                                  (drawing.ClassName == "Circle" and drawing.Visible)) then
+                    pcall(function() drawing:Remove() end)
+                end
             end
         end
     end
     Script.NotifyNote = {}
 
-    -- 3. Remove any floating TextLabels/ImageLabels
+    -- 3. Remove any Yeki-created UI in Workspace
     for _, v in pairs(game:GetService("Workspace"):GetDescendants()) do
-        if (v:IsA("TextLabel") or v:IsA("ImageLabel")) and v.Parent == workspace then
-            pcall(function() v:Destroy() end)
+        if v:IsA("TextLabel") or v:IsA("ImageLabel") then
+            if v:FindFirstAncestor("Yeki") or v.Name:find("Yeki") then
+                pcall(function() v:Destroy() end)
+            end
         end
     end
 
-    -- 4. Clear any leftover GUI effects
+    -- 4. Clean Yeki-specific lighting effects
     for _, v in pairs(game:GetService("Lighting"):GetChildren()) do
-        if v:IsA("BlurEffect") or v:IsA("ColorCorrectionEffect") then
+        if (v:IsA("BlurEffect") or v:IsA("ColorCorrectionEffect")) and v.Name:find("Yeki") then
             pcall(function() v:Destroy() end)
         end
     end
 end
 
--- Run cleanup once now
-CleanGUI()
+-- Run initial cleanup
+CleanYekiGUIsOnly()
 
--- Set up periodic gentle cleanup
+-- Set up automatic cleanup every 5 minutes
 coroutine.resume(coroutine.create(function()
-    while wait(30) do  -- Clean every 30 seconds
-        CleanGUI()
+    while wait(300) do
+        CleanYekiGUIsOnly()
     end
 end))
 
 -- Cleanup when script ends
 game:BindToClose(function()
-    CleanGUI()
+    CleanYekiGUIsOnly()
 end)
 
--- Safety wrapper for ESP updates
-local oldUpdateEsp = Script.Functions.UpdateEsp
+-- Safety wrapper for ESP that preserves FOV circles
+local originalUpdateEsp = Script.Functions.UpdateEsp
 Script.Functions.UpdateEsp = function()
-    local success, err = pcall(oldUpdateEsp)
+    local success, err = pcall(function()
+        -- Backup FOV circle states
+        local silentFovVisible = Script.Drawing.SilentCircle.Visible
+        local aimAssistFovVisible = Script.Drawing.AimAssistCircle.Visible
+        
+        -- Run original function
+        originalUpdateEsp()
+        
+        -- Restore FOV visibility if modified
+        Script.Drawing.SilentCircle.Visible = silentFovVisible
+        Script.Drawing.AimAssistCircle.Visible = aimAssistFovVisible
+    end)
+    
     if not success and Yeki.Options.NotificationMode.Enabled then
-        Script.Functions.CreateNotification("ESP Error: "..tostring(err):sub(1, 50), Color3.fromRGB(255, 0, 0))
+        Script.Functions.CreateNotification("ESP Update Error: "..tostring(err):sub(1, 50), Color3.fromRGB(255, 50, 50))
     end
 end
 
+-- Notification to confirm cleanup is active
 if Yeki.Options.NotificationMode.Enabled then
-    Script.Functions.CreateNotification("GUI cleanup active", Color3.fromRGB(0, 200, 255))
+    Script.Functions.CreateNotification("Yeki GUI cleanup active", Color3.fromRGB(100, 255, 100))
 end
