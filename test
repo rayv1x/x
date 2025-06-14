@@ -13,7 +13,7 @@ getgenv().Yeki = {
         ["RemoveSeats"] = (true), -- // AutoMatically Removes Seats
         ["GetInformation"] = (false), -- // Sends Current Execution And How Long It Took You To Load
         ["NotificationMode"] = {
-            ["Enabled"] = (false),
+            ["Enabled"] = (true),
             ["Silent"] = (true),
             ["AimAssist"] = (true),
             ["PanicMode"] = (false),
@@ -21,8 +21,8 @@ getgenv().Yeki = {
             ["CheatDetected"] = (true),
             ["FakeSpike"] = (false),
             ["Desync"] = (false), 
-            ["Esp"] = (false),
-            ["Misc"] = (false)
+            ["Esp"] = (true),
+            ["Misc"] = (true)
         } -- // Sends Notification When you Enabled / Disabled Stuff
     },
     ["PanicMode"] = {
@@ -67,11 +67,11 @@ getgenv().Yeki = {
         ["UseWhitelistedParts"] = (true), -- // Makes So You Only Get Custom Parts
         ["WhitelistedPart"] = {"Head", "UpperTorso", "LowerTorso", "RightFoot", "LeftFoot",}, -- // Whitelists Certain Part For ClosestPart Function. Example {"HumanoidRootPart", "Head"}
         ["AntiAimViewer"] = (true), -- // Bypasses The Mouse Position For The Server
-        ["HitChance"] = (79), -- // The Chance You Will Hit The Target
-        ["AirHitChance"] = (79), -- // The Chance You Will Hit The Target In The Air
+        ["HitChance"] = (77), -- // The Chance You Will Hit The Target
+        ["AirHitChance"] = (100), -- // The Chance You Will Hit The Target In The Air
         
         ["Humanize"] = (true), -- // Makes So The Silent Doesnt Hit The Same Position (Randomizes The Position)
-        ["HumanizeValue"] = (5), -- // Makes So How Much Power It Changes
+        ["HumanizeValue"] = (12), -- // Makes So How Much Power It Changes
         
         ["TriggerBot"] = (false), -- // Shoots AutoMatically When You Have An Target Locked
         ["TriggerBot_HoldMode"] = (false), -- // Enables While Only Holding The Key
@@ -85,7 +85,7 @@ getgenv().Yeki = {
         ["AntiGroundActivation"] = (-10), -- // The Value Its Gonna Start Activating
         
         ["Custom_AntiAimViewerPoint"] = {
-            ["Enabled"] = (false), -- // Enable / Disable Custom Anti AimViewer
+            ["Enabled"] = (true), -- // Enable / Disable Custom Anti AimViewer
             ["RemoteEvent"] = (function(Pos) -- // This Is Only For Games That Arent Supported With The Current Anti Aim Viewer
                 local MainEvent = game:GetService("ReplicatedStorage").MainEvent -- // The MainEvent Path
                 local Args = {
@@ -100,7 +100,7 @@ getgenv().Yeki = {
          ["PingPrediction"] = {
             ["Enabled"] = (true), -- // Automatically Sets The Prediction On What Ping You Are On
             ["AutoMatic"] = (true), -- // Automatically Generates An Prediction For Your Ping
-            ["RefreshRate"] = (0.02), -- // Waits This Seconds To Execute Again
+            ["RefreshRate"] = (0.01), -- // Waits This Seconds To Execute Again
             ["P200_Inf"] = (0.2354),
             ["P190_200"] = (0.2129),
             ["P180_190"] = (0.1902),
@@ -126,10 +126,10 @@ getgenv().Yeki = {
             ["Visible"] = (true), -- // If The Circle Is Showing Or Not
             ["Method"] = ("Screen"), -- // What Type Of Position The Fov Is Gonna Be (Mouse, Screen)
             ["Filled"] = (false), -- // If The Circle Is Filled
-            ["Transparency"] = (0.1), -- // The Circle Transparency
-            ["Color"] = (Color3.fromRGB(200, 200, 200)), -- // Circle Color
+            ["Transparency"] = (0.2), -- // The Circle Transparency
+            ["Color"] = (Color3.fromRGB(0, 0, 0)), -- // Circle Color
             ["Offset"] = (Vector2.new(0, 0)), -- // Circle Position + The Offset
-            ["StickyFov"] = (true), -- // Puts The Circle On Target Position
+            ["StickyFov"] = (false), -- // Puts The Circle On Target Position
             ["Radius"] = (11.8) -- // How Big The Circle Is
         },
         ["GunSettings"] = {
@@ -268,7 +268,7 @@ getgenv().Yeki = {
     },
     ["UniversalCheck"] = {
         ["InVisibleCheck"] = (true), -- // Checks If Target Is InVisible
-        ["ForceFieldCheck"] = (true), -- // Checks If Target Has ForceFeild. That Blue Bubble Thing When You Spawn
+        ["ForceFieldCheck"] = (false), -- // Checks If Target Has ForceFeild. That Blue Bubble Thing When You Spawn
         ["TargetDeathCheck"] = (true), -- // Disables When Target Is Dead
         ["PlayerDeathCheck"] = (true), -- // Disables When You Die
         ["ToolOut"] = (false), -- // AimAssist Only Enables When An Tool Is Out
@@ -384,17 +384,17 @@ getgenv().Yeki = {
     },
     ["Esp"] = {
         ["Enabled"] = (false), -- // Enable / Disable Esp
-        ["UseEspKeyBind"] = (true), -- // Enable / Disable EspKey
+        ["UseEspKeyBind"] = (false), -- // Enable / Disable EspKey
         ["EspKey"] = ("T"), -- // Key To Enable / Disable Esp
         ["HoldMode"] = (false), -- // Enables While Only Holding The Key
         
-        ["TextSize"] = (16), -- // How Big The Text Is
+        ["TextSize"] = (10), -- // How Big The Text Is
         
         ["Name"] = {["Enabled"] = (true), ["OutLine"] = (true), ["Color"] = (Color3.fromRGB(255, 255, 255))}, -- // Shows Text Of The Targets Name
         ["Cheater"] = {["Enabled"] = (true), ["Suspicious"] = (true), ["OutLine"] = (true), ["Color"] = (Color3.fromRGB(255, 0, 0))}, -- // Shows Box Around The Target
-        ["Box"] = {["Enabled"] = (false), ["OutLine"] = (false), ["Color"] = (Color3.fromRGB(255, 255, 255))}, -- // Shows Box Around The Target
+        ["Box"] = {["False"] = (true), ["OutLine"] = (true), ["Color"] = (Color3.fromRGB(255, 255, 255))}, -- // Shows Box Around The Target
         
-        ["HealthBar"] = {["Enabled"] = (false), ["OutLine"] = (false), ["Color"] = (Color3.fromRGB(0, 255, 0)), ["HealthColor"] = (true)}, -- // Shows An Health Bar On Target. If The Player Is Low The Bar Is Gonna Shrink
+        ["HealthBar"] = {["Enabled"] = (true), ["OutLine"] = (false), ["Color"] = (Color3.fromRGB(0, 255, 0)), ["HealthColor"] = (true)}, -- // Shows An Health Bar On Target. If The Player Is Low The Bar Is Gonna Shrink
         ["HealthText"] = {["Enabled"] = (true), ["OutLine"] = (true), ["Color"] = (Color3.fromRGB(0, 255, 0)), ["HealthColor"] = (true)}, -- // Shows An Text How Much Health Target Has
         
         ["ArmorBar"] = {["Enabled"] = (false), ["OutLine"] = (false), ["Color"] = (Color3.fromRGB(0, 189, 255))}, -- // Shows An Armor Bar On Target. If The Player Armor Is Low The Bar Is Gonna Shrink
@@ -403,10 +403,10 @@ getgenv().Yeki = {
         ["Distance"] = {["Enabled"] = (true), ["OutLine"] = (true), ["Color"] = (Color3.fromRGB(255, 255, 255))}, -- // Shows Targets Distance Between You And The Target
         ["Tool"] = {["Enabled"] = (false), ["OutLine"] = (false), ["Color"] = (Color3.fromRGB(255, 255, 255))}, -- // Shows Targets Distance Between You And The Target
         ["Flags"] = {["Enabled"] = (false), ["WalkingState"] = (false), ["DesyncState"] = (false), ["OutLine"] = (false), ["Color"] = (Color3.fromRGB(255, 255, 255))}, -- // Show States For Walking Or Desyncing
-        ["Tracer"] = {["Enabled"] = (false), ["Method"] = ("Mouse"), ["Thickness"] = (1), ["Color"] = (Color3.fromRGB(255, 255, 255))}, -- // Shows A Line That Goes To The Player (Mouse, Screen)
+        ["Tracer"] = {["Enabled"] = (true), ["Method"] = ("Screen"), ["Thickness"] = (1), ["Color"] = (Color3.fromRGB(255, 255, 255))}, -- // Shows A Line That Goes To The Player (Mouse, Screen)
         
         ["CrewColor"] = {["Enabled"] = (false), ["Color"] = (Color3.fromRGB(0, 255, 0))}, -- // The Box Will Change Color If The Player Is The Same Crew As You
-        ["TargetColor"] = {["Enabled"] = (false), ["Color"] = (Color3.fromRGB(255, 0, 0))} -- // The Box Will Change Color When You Have An Target
+        ["TargetColor"] = {["Enabled"] = (true), ["Color"] = (Color3.fromRGB(255, 0, 0))} -- // The Box Will Change Color When You Have An Target
     }
 }
 
