@@ -3528,104 +3528,169 @@ Notify({
 })
 
 -- =============================================
--- FULL CLEANUP SCRIPT (Add at the VERY END)
+-- Yeki.lua Safe Cleanup (Preserves Settings)
+-- Add this at the VERY END of your script
 -- =============================================
 
--- 1. FIRST, CLEAR ALL EXISTING DRAWINGS AND GUI ELEMENTS
-for _, playerData in pairs(Script.EspPlayers or {}) do
-    for drawingName, drawingObj in pairs(playerData) do
-        if typeof(drawingObj) == "Instance" and drawingObj:IsA("Drawing") then
-            drawingObj:Remove() -- Remove ESP drawings (text, boxes, etc.)
+-- Only run once
+if getgenv().YekiSafeCleanupLoaded then return end
+getgenv().YekiSafeCleanupLoaded = true
+
+-- Backup all current settings
+local YekiBackup = {
+    Silent = table.clone(Yeki.Silent),
+    AimAssist = table.clone(Yeki.AimAssist),
+    Esp = table.clone(Yeki.Esp),
+    Options = table.clone(Yeki.Options),
+    CurrentStates = {
+        SilentEnabled = Yeki.Silent.Enabled,
+        AimAssistEnabled = Yeki.AimAssist.Enabled,
+        EspEnabled = Yeki.Esp.Enabled,
+        TriggerBot = TriggerBot,
+        Macro = Macro,
+        NoclipMacro = NoclipMacro,
+        FakeSpike = FakeSpike,
+        PanicMode = PanicMode
+    }
+}
+
+local function SafeCleanup()
+    -- 1. Remove ESP drawings without disabling ESP
+    for player, drawings in pairs(Script.EspPlayers or {}) do
+        for _, drawing in pairs(drawings) do
+            if drawing and typeof(drawing) == "Instance" and drawing:IsA("Drawing") then
+                pcall(function()
+                    drawing.Visible = false
+                    drawing:Remove()
+                end)
+            end
         end
+    end
+    Script.EspPlayers = {}
+
+    -- 2. Hide circles without destroying them
+    for _, drawing in pairs({Script.Drawing.SilentCircle, Script.Drawing.AimAssistCircle, Script.Drawing.DesyncCircle}) do
+        if drawing and typeof(drawing) == "Instance" and drawing:IsA("Drawing") then
+            pcall(function() drawing.Visible = false end)
+        end
+    end
+
+    -- 3. Restore network settings
+    if settings().Network.IncomingReplicationLag ~= 0 then
+        settings().Network.IncomingReplicationLag = 0
+    end
+
+    -- 4. Clean up notifications
+    for _, note in ipairs(Script.NotifyNote or {}) do
+        for _, drawing in pairs(note.Drawings or {}) do
+            if drawing and typeof(drawing) == "Instance" and drawing:IsA("Drawing") then
+                pcall(function() drawing:Remove() end)
+            end
+        end
+    end
+    Script.NotifyNote = {}
+
+    -- 5. Disconnect connections without changing states
+    if ToolConnection then ToolConnection:Disconnect() end
+end
+
+local function RestoreSettings()
+    -- Restore all settings from backup
+    Yeki.Silent = table.clone(YekiBackup.Silent)
+    Yeki.AimAssist = table.clone(YekiBackup.AimAssist)
+    Yeki.Esp = table.clone(YekiBackup.Esp)
+    Yeki.Options = table.clone(YekiBackup.Options)
+    
+    -- Restore runtime states
+    Yeki.Silent.Enabled = YekiBackup.CurrentStates.SilentEnabled
+    Yeki.AimAssist.Enabled = YekiBackup.CurrentStates.AimAssistEnabled
+    Yeki.Esp.Enabled = YekiBackup.CurrentStates.EspEnabled
+    TriggerBot = YekiBackup.CurrentStates.TriggerBot
+    Macro = YekiBackup.CurrentStates.Macro
+    NoclipMacro = YekiBackup.CurrentStates.NoclipMacro
+    FakeSpike = YekiBackup.CurrentStates.FakeSpike
+    PanicMode = YekiBackup.CurrentStates.PanicMode
+
+    -- Restore drawing visibility
+    if Script.Drawing.SilentCircle then
+        Script.Drawing.SilentCircle.Visible = Yeki.Silent.Fov.Visible
+    end
+    if Script.Drawing.AimAssistCircle then
+        Script.Drawing.AimAssistCircle.Visible = Yeki.AimAssist.Fov.Visible
     end
 end
 
--- Clear GUI elements (if any)
-if game:GetService("CoreGui"):FindFirstChild("YekiESP") then
-    game:GetService("CoreGui").YekiESP:Destroy()
-end
-
--- 2. FIX THE ESP UPDATE FUNCTION (NO DUPLICATES)
-local function FixedUpdateESP()
-    for player, drawings in pairs(Script.EspPlayers) do
-        -- Skip if player is invalid or ESP is disabled
-        if not Yeki.Esp.Enabled or not player.Character or not player.Character:FindFirstChild("HumanoidRootPart") then
-            for _, drawing in pairs(drawings) do
-                if drawing then drawing.Visible = false end
+-- Create safe wrapper for main functions
+local function SafeUpdate()
+    while task.wait() do
+        local success, err = pcall(function()
+            -- Your existing update code
+            Script.Functions.Desync()
+            Script.Functions.GetSilentTarget()
+            Script.Functions.UpdateFOV()
+            if Yeki.Options.AutoGetUp and Script.Functions.Alive(Client) then
+                if Client.Character.Humanoid:GetState() == Enum.HumanoidStateType.FallingDown then
+                    Client.Character.Humanoid:ChangeState("GettingUp")
+                end
             end
-            continue
-        end
-
-        -- Calculate position once
-        local rootPart = player.Character.HumanoidRootPart
-        local pos, onScreen = Camera:WorldToViewportPoint(rootPart.Position)
+            Script.Functions.MouseChanger()
+            if TriggerBot and Script.Functions.Alive(SilentTarget) then
+                -- Trigger bot logic
+            end
+            Script.Functions.SilentMisc()
+            Script.Functions.UpdateEsp()
+        end)
         
-        if onScreen then
-            -- Update NAME text
-            if drawings.Name then
-                drawings.Name.Visible = Yeki.Esp.Name.Enabled
-                drawings.Name.Text = player.Name
-                drawings.Name.Position = Vector2.new(pos.X, pos.Y - 30) -- Adjust Y offset
-            end
-
-            -- Update DISTANCE text
-            if drawings.Distance and Yeki.Esp.Distance.Enabled then
-                local dist = (rootPart.Position - Camera.CFrame.Position).Magnitude
-                drawings.Distance.Text = string.format("[%d studs]", math.floor(dist))
-                drawings.Distance.Position = Vector2.new(pos.X, pos.Y - 15)
-            end
-
-            -- Update HEALTH text
-            if drawings.HealthText and Yeki.Esp.HealthText.Enabled then
-                local health = player.Character.Humanoid.Health
-                drawings.HealthText.Text = string.format("HP: %d", math.floor(health))
-                drawings.HealthText.Position = Vector2.new(pos.X, pos.Y)
-            end
-
-            -- Update BOX (if enabled)
-            if drawings.Box and Yeki.Esp.Box.Enabled then
-                local size = Vector2.new(50, 80) -- Adjust box size
-                drawings.Box.Size = size
-                drawings.Box.Position = Vector2.new(pos.X - size.X / 2, pos.Y - size.Y / 2)
-                drawings.Box.Visible = true
-            end
-        else
-            -- Hide if off-screen
-            for _, drawing in pairs(drawings) do
-                if drawing then drawing.Visible = false end
-            end
+        if not success and Yeki.Options.NotificationMode.Enabled then
+            Script.Functions.CreateNotification("Script Error: "..tostring(err):sub(1, 50), Color3.fromRGB(255, 0, 0))
         end
     end
 end
 
--- Replace the old UpdateEsp
-Script.Functions.UpdateEsp = FixedUpdateESP
+-- Setup auto-cleanup
+game:BindToClose(function()
+    SafeCleanup()
+    wait(0.5)
+end)
 
--- 3. FIX GUI ISSUES (IF ANY)
--- Example: Recreate a clean GUI container (optional)
-local function CreateCleanGUI()
-    local gui = Instance.new("ScreenGui")
-    gui.Name = "YekiESP"
-    gui.Parent = game:GetService("CoreGui")
-    gui.ResetOnSpawn = false
-    return gui
-end
+-- Initialize with restoration
+coroutine.resume(coroutine.create(function()
+    SafeCleanup()
+    wait(0.1)
+    RestoreSettings()
+    SafeUpdate()
+end))
 
--- 4. CLEANUP WHEN PLAYERS LEAVE
+-- Improved player cleanup that preserves ESP settings
 Players.PlayerRemoving:Connect(function(player)
     if Script.EspPlayers[player] then
         for _, drawing in pairs(Script.EspPlayers[player]) do
-            if drawing then drawing:Remove() end
+            if drawing then
+                pcall(function()
+                    drawing.Visible = false
+                    drawing:Remove()
+                end)
+            end
         end
         Script.EspPlayers[player] = nil
     end
 end)
 
--- 5. PREVENT DUPLICATE EXECUTIONS
-if getgenv().YekiFullCleanupDone then return end
-getgenv().YekiFullCleanupDone = true
+-- Helper function for deep copying tables
+function table.clone(orig)
+    local orig_type = type(orig)
+    local copy
+    if orig_type == 'table' then
+        copy = {}
+        for orig_key, orig_value in pairs(orig) do
+            copy[orig_key] = orig_value
+        end
+    else
+        copy = orig
+    end
+    return copy
+end
 
--- 6. FORCE-RESET ESP TO APPLY FIXES
-Yeki.Esp.Enabled = false
-task.wait(0.1)
-Yeki.Esp.Enabled = true -- Toggle to refresh
+if Yeki.Options.NotificationMode.Enabled then
+    Script.Functions.CreateNotification("Yeki stability system loaded", Color3.fromRGB(0, 255, 0))
+end
