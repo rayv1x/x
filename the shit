@@ -1,5 +1,3 @@
--- // Custom Emoji Notification System (Rounded, Smooth) // --
-
 local TweenService = game:GetService("TweenService")
 local HttpService = game:GetService("HttpService")
 
