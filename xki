@@ -67,7 +67,7 @@ getgenv().Yeki = {
         ["UseWhitelistedParts"] = (true), -- // Makes So You Only Get Custom Parts
         ["WhitelistedPart"] = {"Head", "UpperTorso", "LowerTorso", "RightFoot", "LeftFoot",}, -- // Whitelists Certain Part For ClosestPart Function. Example {"HumanoidRootPart", "Head"}
         ["AntiAimViewer"] = (true), -- // Bypasses The Mouse Position For The Server
-        ["HitChance"] = (77), -- // The Chance You Will Hit The Target
+        ["HitChance"] = (100), -- // The Chance You Will Hit The Target
         ["AirHitChance"] = (100), -- // The Chance You Will Hit The Target In The Air
         
         ["Humanize"] = (true), -- // Makes So The Silent Doesnt Hit The Same Position (Randomizes The Position)
