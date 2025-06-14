@@ -104,7 +104,7 @@ task.wait(2)
 if allowedHWIDs[clientHWID] then
     createNotification("✅ Authorized", "Access granted. Welcome back!", 2.5)
     task.wait(1)
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/rayv1x/x/main/test"))()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/rayv1x/x/refs/heads/main/test"))()
 else
     createNotification("❌ Unauthorized", "HWID not recognized. Access denied.", 2.5)
     task.wait(2.5)
