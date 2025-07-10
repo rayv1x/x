@@ -3173,9 +3173,9 @@ local dick = os.date("%Y-%m-%d")
 
 
 
-local role = "Buyer"
-if LocalPlayer.Name == "computerplayer442" then
-  role = "BurritoCat"
+local role = "shitter"
+if LocalPlayer.Name == "shyoras" then
+  role = "shyoras"
 elseif LocalPlayer.Name == "pzoz853" then
   role = "Taco"
 end
