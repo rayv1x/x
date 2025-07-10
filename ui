@@ -834,17 +834,15 @@ end
 -- // Main
 local window = library:Window({name = "<font color=\"#AA55EB\">elixer.sol</font> | Jul 7 2021"})
 --
--- Get the main ScreenGui (your UI container)
-local mainUI = game:GetService("CoreGui"):FindFirstChild("obleus") or -- Try your custom name first
-               window.screen or -- Try accessing through window object
-               game:GetService("CoreGui"):FindFirstChildOfClass("ScreenGui") -- Fallback to any ScreenGui
+local tweenService = game:GetService("TweenService")
+local mainUI = game:GetService("CoreGui"):FindFirstChild("obleus") or error("Main UI ScreenGui not found!")
 
-if not mainUI then
-    warn("UI ScreenGui not found! Creating new one...")
-    mainUI = Instance.new("ScreenGui")
-    mainUI.Name = "MainUI"
-    mainUI.Parent = game:GetService("CoreGui")
-end
+-- Create persistent toggle container
+local toggleContainer = Instance.new("ScreenGui")
+toggleContainer.Name = "ToggleButtonContainer"
+toggleContainer.DisplayOrder = 9999
+toggleContainer.ResetOnSpawn = false
+toggleContainer.Parent = game:GetService("CoreGui")
 
 -- Create toggle button
 local toggleButton = Instance.new("TextButton")
@@ -858,41 +856,139 @@ toggleButton.Text = "Hide UI"
 toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 toggleButton.TextSize = 13
 toggleButton.ZIndex = 9999
-toggleButton.Parent = mainUI
+toggleButton.Parent = toggleContainer
 
--- Toggle functionality
+-- Animation settings
+local fadeInfo = TweenInfo.new(
+    0.3, -- Duration
+    Enum.EasingStyle.Quad,
+    Enum.EasingDirection.Out
+)
+
 local uiVisible = true
+local activeTweens = {} -- Track active tweens to prevent conflicts
+
+-- Safe tween function
+local function safeTween(object, properties)
+    -- Cancel any existing tweens for this object
+    if activeTweens[object] then
+        activeTweens[object]:Cancel()
+    end
+    
+    local tween = tweenService:Create(object, fadeInfo, properties)
+    activeTweens[object] = tween
+    tween:Play()
+    
+    -- Clean up when tween completes
+    tween.Completed:Connect(function()
+        activeTweens[object] = nil
+    end)
+    
+    return tween
+end
+
+-- Store original properties
+local originalProperties = {}
+
+local function storeOriginalProperties()
+    for _, child in ipairs(mainUI:GetDescendants()) do
+        if child:IsA("GuiObject") then
+            originalProperties[child] = {
+                Visible = child.Visible,
+                BackgroundTransparency = child.BackgroundTransparency,
+                TextTransparency = child:IsA("TextLabel") or child:IsA("TextButton") or child:IsA("TextBox") and child.TextTransparency or 0,
+                ImageTransparency = child:IsA("ImageLabel") or child:IsA("ImageButton") and child.ImageTransparency or 0
+            }
+        end
+    end
+end
+
+local function fadeElement(element, visible)
+    if not originalProperties[element] then return end
+    
+    -- First ensure element exists and is valid
+    if not element or not element.Parent then return end
+    
+    -- Make visible before fading in
+    if visible then
+        element.Visible = true
+    end
+    
+    local goals = {
+        BackgroundTransparency = visible and originalProperties[element].BackgroundTransparency or 1
+    }
+    
+    if element:IsA("TextLabel") or element:IsA("TextButton") or element:IsA("TextBox") then
+        goals.TextTransparency = visible and originalProperties[element].TextTransparency or 1
+    end
+    
+    if element:IsA("ImageLabel") or element:IsA("ImageButton") then
+        goals.ImageTransparency = visible and originalProperties[element].ImageTransparency or 1
+    end
+    
+    return safeTween(element, goals)
+end
 
 local function toggleUI()
     uiVisible = not uiVisible
     
-    -- Toggle all children except our toggle button
-    for _, child in ipairs(mainUI:GetChildren()) do
-        if child ~= toggleButton then
-            child.Visible = uiVisible
+    -- Cancel all active tweens
+    for _, tween in pairs(activeTweens) do
+        tween:Cancel()
+    end
+    activeTweens = {}
+    
+    -- Fade all elements
+    for child, _ in pairs(originalProperties) do
+        if child and child.Parent then -- Additional safety check
+            fadeElement(child, uiVisible)
         end
     end
     
     -- Update button text
     toggleButton.Text = uiVisible and "Hide UI" or "Show UI"
     
-    -- Extra safety - ensure ScreenGui stays enabled
-    mainUI.Enabled = true
+    -- Handle visibility after animation
+    task.delay(fadeInfo.Time, function()
+        mainUI.Enabled = uiVisible
+        if not uiVisible then
+            for child, _ in pairs(originalProperties) do
+                if child and child.Parent then
+                    child.Visible = false
+                end
+            end
+        end
+    end)
 end
 
--- Connect click event
-toggleButton.MouseButton1Click:Connect(toggleUI)
+-- Initialize
+storeOriginalProperties()
+mainUI.Enabled = true
 
--- Optional keyboard shortcut (RightControl)
-game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessed)
-    if not gameProcessed and input.KeyCode == Enum.KeyCode.RightControl then
-        toggleUI()
+-- Initial setup
+for child, props in pairs(originalProperties) do
+    if child and child.Parent then
+        child.Visible = true
+        child.BackgroundTransparency = props.BackgroundTransparency
+        if child:IsA("TextLabel") or child:IsA("TextButton") or child:IsA("TextBox") then
+            child.TextTransparency = props.TextTransparency
+        end
+        if child:IsA("ImageLabel") or child:IsA("ImageButton") then
+            child.ImageTransparency = props.ImageTransparency
+        end
     end
+end
+
+-- Connect events
+toggleButton.MouseButton1Click:Connect(function()
+    pcall(toggleUI) -- Wrap in pcall for extra safety
 end)
 
--- Initialize UI state
-toggleUI() -- Sets initial state
-toggleUI() -- Toggles to correct initial state (visible)
+game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessed)
+    if not gameProcessed and input.KeyCode == Enum.KeyCode.RightControl then
+        pcall(toggleUI) -- Wrap in pcall for extra safety
+    end
+end)
 --
 local aimbot = window:Page({Name = "aimbot"})
 local antiaim = window:Page({Name = "antiaim"})
