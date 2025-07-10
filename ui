@@ -834,6 +834,66 @@ end
 -- // Main
 local window = library:Window({name = "<font color=\"#AA55EB\">elixer.sol</font> | Jul 7 2021"})
 --
+-- Get the main ScreenGui (your UI container)
+local mainUI = game:GetService("CoreGui"):FindFirstChild("obleus") or -- Try your custom name first
+               window.screen or -- Try accessing through window object
+               game:GetService("CoreGui"):FindFirstChildOfClass("ScreenGui") -- Fallback to any ScreenGui
+
+if not mainUI then
+    warn("UI ScreenGui not found! Creating new one...")
+    mainUI = Instance.new("ScreenGui")
+    mainUI.Name = "MainUI"
+    mainUI.Parent = game:GetService("CoreGui")
+end
+
+-- Create toggle button
+local toggleButton = Instance.new("TextButton")
+toggleButton.Name = "UIToggleButton"
+toggleButton.AnchorPoint = Vector2.new(1, 0)
+toggleButton.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+toggleButton.BorderColor3 = Color3.fromRGB(13, 13, 13)
+toggleButton.Position = UDim2.new(1, -10, 0, 10)
+toggleButton.Size = UDim2.new(0, 100, 0, 25)
+toggleButton.Text = "Hide UI"
+toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+toggleButton.TextSize = 13
+toggleButton.ZIndex = 9999
+toggleButton.Parent = mainUI
+
+-- Toggle functionality
+local uiVisible = true
+
+local function toggleUI()
+    uiVisible = not uiVisible
+    
+    -- Toggle all children except our toggle button
+    for _, child in ipairs(mainUI:GetChildren()) do
+        if child ~= toggleButton then
+            child.Visible = uiVisible
+        end
+    end
+    
+    -- Update button text
+    toggleButton.Text = uiVisible and "Hide UI" or "Show UI"
+    
+    -- Extra safety - ensure ScreenGui stays enabled
+    mainUI.Enabled = true
+end
+
+-- Connect click event
+toggleButton.MouseButton1Click:Connect(toggleUI)
+
+-- Optional keyboard shortcut (RightControl)
+game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessed)
+    if not gameProcessed and input.KeyCode == Enum.KeyCode.RightControl then
+        toggleUI()
+    end
+end)
+
+-- Initialize UI state
+toggleUI() -- Sets initial state
+toggleUI() -- Toggles to correct initial state (visible)
+--
 local aimbot = window:Page({Name = "aimbot"})
 local antiaim = window:Page({Name = "antiaim"})
 local visuals = window:Page({Name = "visuals"})
