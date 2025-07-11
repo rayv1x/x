@@ -1,4 +1,4 @@
-setfpscap(1000)
+
 
 
 local function cooked(Sex3)
@@ -18,7 +18,7 @@ local startTime = os.clock()
 repeat wait() until game:IsLoaded()
 
 
-loadstring(game:HttpGet("https://gist.githubusercontent.com/CongoOhioDog/a176e78a0053eb3c1a48e58dece4ebb0/raw/b37a50cf92c1c427512ca44e6341315124521522/gistfile1.txt"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/Pixeluted/adoniscries/main/Source.lua"))()
 
 
 if not LPH_OBFUSCATED then
@@ -3116,6 +3116,30 @@ local function findClosestPlayer()
     local closestDistance = math.huge
 
     for _, Plr in ipairs(Players:GetPlayers()) do
+        if Plr == Players.LocalPlayer or not Plr.Character or not Plr.Character:FindFirstChild("HumanoidRootPart") then
+            continue
+        end
+
+if Psalms.Tech.FriendCheck and player:IsFriendsWith(Plr.UserId) then
+                continue
+            end
+
+if Psalms.Tech.TeamCheck and isPlayerOnSameTeam(Plr) then
+    continue
+end
+
+            if Psalms.Tech.KOCheck and isPlayerKO(Plr) then
+                continue
+            end
+
+            if Psalms.Tech.SeatedCheck and isPlayerSeated(Plr) then
+                continue
+            end
+
+            if Psalms.Tech.WallCheck and BehindWall(Plr) then
+                continue
+            end
+
         local targetPart = Plr.Character:FindFirstChild("HumanoidRootPart")
         if targetPart then
             local screenPos, onScreen = Camera:WorldToViewportPoint(targetPart.Position)
@@ -3173,17 +3197,11 @@ local dick = os.date("%Y-%m-%d")
 
 
 
-local role = "shitter"
-if LocalPlayer.Name == "shyoras" then
-  role = "shyoras"
-elseif LocalPlayer.Name == "pzoz853" then
-  role = "Taco"
-end
 
 local RealColor = "#" .. Library.Accent:ToHex()
 
 local Window = Library:Window({
-    Name = 'Psalms.<font color="'..RealColor..'">Tech</font> | '..guh..' | '..dick..' | <font color="'..RealColor..'">'..role..'</font>',
+    Name = 'Psalms.<font color="'..RealColor..'">Tech</font> | '..guh..' | '..dick..' | Fixed by <font color="'..RealColor..'">Dino</font>',
     Amount = 4
 })
 
@@ -4695,7 +4713,111 @@ ESP1:Toggle({Name = "Health Bar Enabled", Callback = function(v)
     getgenv().esp.BarLayout['health'].enabled = v
 end})
 
-end
+
+ESP1:Toggle({
+    Name = "Target Only Mode",
+    Callback = function(v)
+        getgenv().esp.TargetOnly = v
+    end
+})
+
+
+
+getgenv().TrailColor = Color3.fromRGB(255, 209, 220)
+Sig2:Toggle({
+    Name = "Trail",
+    Callback = function(v)
+        utility = utility or {}
+
+        local Settings = {
+            Visuals = {
+                SelfESP = {
+                    Trail = {
+                        InsideColor = getgenv().TrailColor,
+                        OutsideColor = getgenv().TrailColor,
+                        LifeTime = 5,
+                        Width = 0.08
+                    }
+                }
+            }
+        }
+
+        utility.trail_character = function(Bool)
+            local player = game.Players.LocalPlayer
+
+            local function createTrail(character)
+                local existingTrailPart = workspace:FindFirstChild("TrailPart")
+                if existingTrailPart then
+                    existingTrailPart:Destroy()
+                end
+
+                local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+                
+                local invisiblePart = Instance.new("Part", workspace)
+                invisiblePart.Name = "TrailPart"
+                invisiblePart.Size = Vector3.new(0.1, 0.1, 0.1)
+                invisiblePart.Transparency = 1
+                invisiblePart.Anchored = true
+                invisiblePart.CanCollide = false
+                invisiblePart.CFrame = humanoidRootPart.CFrame
+                
+                local BlaBla = Instance.new("Trail", invisiblePart)
+                BlaBla.Name = "BlaBla"
+
+                local attachment0 = Instance.new("Attachment", invisiblePart)
+                attachment0.Position = Vector3.new(0, 1, 0)
+                local attachment1 = Instance.new("Attachment", invisiblePart)
+                attachment1.Position = Vector3.new(0, -1, 0)
+
+                BlaBla.Attachment0 = attachment0
+                BlaBla.Attachment1 = attachment1
+
+                BlaBla.Lifetime = Settings.Visuals.SelfESP.Trail.LifeTime
+                BlaBla.Transparency = NumberSequence.new(0, 0)
+                BlaBla.LightEmission = 150
+                BlaBla.Brightness =  1500
+                BlaBla.LightInfluence = 1
+                BlaBla.WidthScale = NumberSequence.new(Settings.Visuals.SelfESP.Trail.Width)
+
+                game:GetService("RunService").RenderStepped:Connect(function()
+                    BlaBla.Color = ColorSequence.new({
+                        ColorSequenceKeypoint.new(0, getgenv().TrailColor),
+                        ColorSequenceKeypoint.new(1, getgenv().TrailColor)
+                    })
+
+                    if humanoidRootPart then
+                        invisiblePart.CFrame = humanoidRootPart.CFrame
+                    end
+                end)
+            end
+
+            if Bool then
+                local character = player.Character or player.CharacterAdded:Wait()
+                createTrail(character)
+
+                player.CharacterAdded:Connect(function(newCharacter)
+                    if Bool then
+                        createTrail(newCharacter)
+                    end
+                end)
+            else
+                for _, child in ipairs(workspace:GetChildren()) do
+                    if child:IsA("Part") and child.Name == "TrailPart" then
+                        child:Destroy()
+                    end
+                end
+            end
+        end
+
+        utility.trail_character(v)
+    end
+}):Colorpicker({
+    Name = "Color",
+    Default = getgenv().TrailColor,
+    Callback = function(a)
+        getgenv().TrailColor = a
+    end
+})
 
 local localPlayerEsp = {
     ForcefieldBody = {
@@ -5608,6 +5730,66 @@ end)
 do
     local CFG = Settings:Section({Name = "Config", Zindex = 2})
 --
+if not isfolder("FixedPsalms") then makefolder("FixedPsalms") end
+if not isfolder("FixedPsalms/Configs") then makefolder("FixedPsalms/Configs") end
+
+local ConfigList = CFG:List({Name = "Config", Flag = "SettingConfigurationList", Options = {}})
+CFG:Textbox({Flag = "SettingsConfigurationName", Name = "Config Name"})
+
+local CurrentList = {}
+
+local function UpdateConfigList()
+    local List = {}
+    for _, file in ipairs(listfiles("FixedPsalms/Configs")) do
+        local FileName = file:match("FixedPsalms/Configs/(.+)%.cfg")
+        if FileName then
+            table.insert(List, FileName)
+        end
+    end
+
+
+    if #List ~= #CurrentList or table.concat(List) ~= table.concat(CurrentList) then
+        CurrentList = List
+        ConfigList:Refresh(CurrentList)
+    end
+end
+
+CFG:Button({Name = "Create", Callback = function()
+    local ConfigName = Flags.SettingsConfigurationName
+    if ConfigName and ConfigName ~= "" and not isfile("FixedPsalms/Configs/" .. ConfigName .. ".cfg") then
+        writefile("FixedPsalms/Configs/" .. ConfigName .. ".cfg", "")
+        UpdateConfigList()
+    end
+end})
+
+CFG:Button({Name = "Save", Callback = function()
+    local SelectedConfig = Flags.SettingConfigurationList
+    if SelectedConfig then
+        writefile("FixedPsalms/Configs/" .. SelectedConfig .. ".cfg", Library:GetConfig())
+    end
+end})
+
+CFG:Button({Name = "Load", Callback = function()
+    local SelectedConfig = Flags.SettingConfigurationList
+    if SelectedConfig then
+        local Content = readfile("FixedPsalms/Configs/" .. SelectedConfig .. ".cfg")
+        Library:LoadConfig(Content)
+    end
+end})
+
+CFG:Button({Name = "Delete", Callback = function()
+    local SelectedConfig = Flags.SettingConfigurationList
+    if SelectedConfig and isfile("FixedPsalms/Configs/" .. SelectedConfig .. ".cfg") then
+        delfile("FixedPsalms/Configs/" .. SelectedConfig .. ".cfg")
+        UpdateConfigList()
+    end
+end})
+
+CFG:Button({Name = "Refresh", Callback = function()
+    pcall(UpdateConfigList)
+end})
+
+
 
     CFG:Keybind({
         Name = "Menu Key",
@@ -5707,6 +5889,7 @@ local loadingTime = os.clock() - startTime
 Library:Notification(string.format("Already Loaded. Load time: %.3f seconds", loadingTime), 3)
 
 toggleAimViewer()
+end
 end
 
 if game.PlaceId == 9825515356 then
